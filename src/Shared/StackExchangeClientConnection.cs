@@ -35,14 +35,14 @@ namespace Microsoft.Web.Redis
         {
             TimeSpan timeSpan = new TimeSpan(0, 0, timeInSeconds);
             RedisKey redisKey = key;
-            return (bool)RetryLogic(() => RealConnection.KeyExpire(redisKey,timeSpan));
+            return (bool)RetryLogic(() => RealConnection.KeyExpire(redisKey, timeSpan));
         }
 
         public object Eval(string script, string[] keyArgs, object[] valueArgs)
         {
             RedisKey[] redisKeyArgs = new RedisKey[keyArgs.Length];
             RedisValue[] redisValueArgs = new RedisValue[valueArgs.Length];
-            
+
             int i = 0;
             foreach (string key in keyArgs)
             {
@@ -143,7 +143,7 @@ namespace Microsoft.Web.Redis
             int sessionTimeout = (int)lockScriptReturnValueArray[2];
             if (sessionTimeout == -1)
             {
-                sessionTimeout = (int) _configuration.SessionTimeout.TotalSeconds;
+                sessionTimeout = (int)_configuration.SessionTimeout.TotalSeconds;
             }
             // converting seconds to minutes
             sessionTimeout = sessionTimeout / 60;
@@ -177,7 +177,7 @@ namespace Microsoft.Web.Redis
             if (lockScriptReturnValueArray.Length > 1 && lockScriptReturnValueArray[1] != null)
             {
                 RedisResult[] data = (RedisResult[])lockScriptReturnValueArray[1];
-                
+
                 // LUA script returns data as object array so keys and values are store one after another
                 // This list has to be even because it contains pair of <key, value> as {key, value, key, value}
                 if (data != null && data.Length != 0 && data.Length % 2 == 0)
@@ -187,7 +187,7 @@ namespace Microsoft.Web.Redis
                     // thats why increment is by 2 because we want to move to next pair
                     for (int i = 0; (i + 1) < data.Length; i += 2)
                     {
-                        string key = (string) data[i];
+                        string key = (string)data[i];
                         if (key != null)
                         {
                             sessionData.SetDataWithoutUpdatingModifiedKeys(key, (byte[])data[i + 1]);
@@ -196,6 +196,12 @@ namespace Microsoft.Web.Redis
                 }
             }
             return sessionData;
+        }
+
+        public bool Exists(string key)
+        {
+            RedisKey redisKey = key;
+            return (bool)OperationExecutor(() => RealConnection.KeyExists(redisKey));
         }
 
         public void Set(string key, byte[] data, DateTime utcExpiry)
@@ -209,8 +215,8 @@ namespace Microsoft.Web.Redis
         public byte[] Get(string key)
         {
             RedisKey redisKey = key;
-            RedisValue redisValue = (RedisValue) OperationExecutor(() => RealConnection.StringGet(redisKey));
-            return (byte[]) redisValue;
+            RedisValue redisValue = (RedisValue)OperationExecutor(() => RealConnection.StringGet(redisKey));
+            return (byte[])redisValue;
         }
 
         public void Remove(string key)
@@ -219,10 +225,10 @@ namespace Microsoft.Web.Redis
             OperationExecutor(() => RealConnection.KeyDelete(redisKey));
         }
 
-        public byte[] GetOutputCacheDataFromResult(object rowDataFromRedis) 
+        public byte[] GetOutputCacheDataFromResult(object rowDataFromRedis)
         {
             RedisResult rowDataAsRedisResult = (RedisResult)rowDataFromRedis;
-            return (byte[]) rowDataAsRedisResult;
+            return (byte[])rowDataAsRedisResult;
         }
     }
 }
