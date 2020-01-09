@@ -3,11 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 //
 
+using StackExchange.Redis;
 using System;
 using System.Diagnostics;
-using System.Threading.Tasks;
 using System.Web.SessionState;
-using StackExchange.Redis;
 
 namespace Microsoft.Web.Redis
 {
@@ -15,7 +14,7 @@ namespace Microsoft.Web.Redis
     {
 
         ProviderConfiguration _configuration;
-        RedisUtility _redisUtility;
+        readonly RedisUtility _redisUtility;
         RedisSharedConnection _sharedConnection;
 
         public StackExchangeClientConnection(ProviderConfiguration configuration, RedisUtility redisUtility, RedisSharedConnection sharedConnection)
@@ -35,7 +34,7 @@ namespace Microsoft.Web.Redis
         {
             TimeSpan timeSpan = new TimeSpan(0, 0, timeInSeconds);
             RedisKey redisKey = key;
-            return (bool)RetryLogic(() => RealConnection.KeyExpire(redisKey, timeSpan));
+            return (bool)RetryLogic(() => RealConnection.KeyExpire(redisKey, timeSpan, CommandFlags.FireAndForget));
         }
 
         public object Eval(string script, string[] keyArgs, object[] valueArgs)
